@@ -337,5 +337,5 @@ MIT
 
 For issues and questions:
 
-- GitHub Issues: https://github.com/IndelibleIncLtd/Pay2nature-web-sdk/issues
+- GitHub Issues: https://github.com/IndelibleIncLtd/pay2nature-web-sdk/issues
 - Email: support@pay2nature.co.uk
