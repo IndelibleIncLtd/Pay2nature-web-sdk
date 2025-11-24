@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pay2Nature Widget - jQuery Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .widget-container {
+            margin: 20px 0;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pay2Nature Widget - jQuery Example</h1>
+    <p>This example shows how to use the Pay2Nature widget with jQuery.</p>
+    
+    <div class="controls">
+        <button id="init-widget">Initialize Widget</button>
+        <button id="destroy-widget">Destroy Widget</button>
+    </div>
+    
+    <div id="pay2nature-widget" class="widget-container"></div>
+    
+    <!-- Load jQuery from CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Load Pay2Nature SDK (UMD bundle) -->
+    <script src="../dist/index.umd.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // The jQuery plugin is auto-registered when using UMD bundle
+            // For module bundlers, import '@pay2nature/widget-sdk/jquery'
+            
+            // Initialize widget
+            $('#init-widget').on('click', function() {
+                $('#pay2nature-widget').pay2nature({
+                    widgetToken: 'your-widget-token-here',
+                    baseUrl: 'https://api.pay2nature.com',
+                    onContribution: function(data) {
+                        console.log('Contribution made:', data);
+                        alert('Thank you for your contribution of ' + data.currency + data.amount + '!');
+                    },
+                    onError: function(error) {
+                        console.error('Widget error:', error);
+                        alert('An error occurred: ' + error.message);
+                    }
+                });
+            });
+            
+            // Destroy widget
+            $('#destroy-widget').on('click', function() {
+                $('#pay2nature-widget').pay2nature('destroy');
+            });
+        });
+    </script>
+</body>
+</html>
+

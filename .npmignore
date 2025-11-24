@@ -1,0 +1,14 @@
+src/
+*.config.js
+*.config.ts
+tsconfig.json
+node_modules/
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+

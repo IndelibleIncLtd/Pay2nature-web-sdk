@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pay2Nature Widget - Vanilla JavaScript Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .widget-container {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pay2Nature Widget Example</h1>
+    <p>This example shows how to use the Pay2Nature widget with vanilla JavaScript.</p>
+    
+    <div id="pay2nature-widget" class="widget-container"></div>
+    
+    <script type="module">
+        import Pay2NatureWidget from '@pay2nature/widget-sdk';
+        
+        const widget = new Pay2NatureWidget({
+            widgetToken: 'your-widget-token-here',
+            baseUrl: 'https://api.pay2nature.com',
+            container: document.getElementById('pay2nature-widget'),
+            onContribution: (data) => {
+                console.log('Contribution made:', data);
+                alert(`Thank you for your contribution of ${data.currency}${data.amount}!`);
+            },
+            onError: (error) => {
+                console.error('Widget error:', error);
+                alert('An error occurred: ' + error.message);
+            }
+        });
+        
+        // Example: Destroy widget after 10 seconds (for testing)
+        // setTimeout(() => {
+        //     widget.destroy();
+        // }, 10000);
+    </script>
+</body>
+</html>
+
