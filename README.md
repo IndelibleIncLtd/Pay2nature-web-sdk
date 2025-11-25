@@ -1,4 +1,4 @@
-# Pay2Nature Widget SDK
+# Pay2Nature Widget Web SDK
 
 Universal SDK for integrating Pay2Nature payment widgets into any web application. Compatible with React, Vue.js, Next.js, jQuery, and Vanilla JavaScript.
 
@@ -13,6 +13,13 @@ or
 ```bash
 yarn add @pay2nature/widget-sdk
 ```
+
+## Configuration Parameters
+
+Before integrating the widget, you'll need to configure the following parameters:
+
+- **widgetToken**: Your unique widget token. To generate a token, visit [https://pay2nature-widget-testing-335180951943.europe-west4.run.app/widget](https://pay2nature-widget-testing-335180951943.europe-west4.run.app/widget)
+- **baseUrl**: The base URL for the Pay2Nature API (e.g., `BASE_URL`)
 
 ## Quick Start
 
@@ -30,13 +37,13 @@ The easiest way to integrate the Pay2Nature widget is by adding a script tag in 
 <html>
     <head>
         <title>Pay2Nature Widget</title>
-        <script src="https://pay2nature-widget-testing-335180951943.europe-west4.run.app/widget/pay2nature.js"></script>
+        <script src="BASE_URL/widget/pay2nature.js"></script>
     </head>
     <body>
         <div
             id="pay2nature-widget"
-            data-widget-token="59a7745632f08223fc2caa1f59fca7b6"
-            data-base-url="https://pay2nature-widget-testing-335180951943.europe-west4.run.app"
+            data-widget-token="your-widget-token"
+            data-base-url="BASE_URL"
         ></div>
     </body>
 </html>
@@ -58,7 +65,7 @@ The easiest way to integrate the Pay2Nature widget is by adding a script tag in 
 
             const widget = new Pay2NatureWidget({
                 widgetToken: "your-widget-token",
-                baseUrl: "https://api.pay2nature.com",
+                baseUrl: "BASE_URL",
                 container: document.getElementById("pay2nature-widget"),
                 onContribution: (data) => {
                     console.log("Contribution made:", data);
@@ -82,7 +89,7 @@ function App() {
     return (
         <Pay2NatureWidgetComponent
             widgetToken="your-widget-token"
-            baseUrl="https://api.pay2nature.com"
+            baseUrl="BASE_URL"
             onContribution={(data) => {
                 console.log("Contribution made:", data);
             }}
@@ -109,7 +116,7 @@ export default function DonationPage() {
             <h1>Support Nature Conservation</h1>
             <Pay2NatureWidgetComponent
                 widgetToken={process.env.NEXT_PUBLIC_WIDGET_TOKEN!}
-                baseUrl={process.env.NEXT_PUBLIC_API_URL!}
+                baseUrl={process.env.NEXT_PUBLIC_API_URL || "BASE_URL"}
                 onContribution={(data) => {
                     // Handle contribution
                     console.log("Contribution:", data);
@@ -137,7 +144,7 @@ import { ref } from "vue";
 import Pay2NatureWidget from "@pay2nature/widget-sdk/vue/Pay2NatureWidget.vue";
 
 const widgetToken = ref("your-widget-token");
-const baseUrl = ref("https://api.pay2nature.com");
+const baseUrl = ref("BASE_URL");
 
 const handleContribution = (data) => {
     console.log("Contribution made:", data);
@@ -167,7 +174,7 @@ const handleError = (error) => {
             $(document).ready(function () {
                 $("#pay2nature-widget").pay2nature({
                     widgetToken: "your-widget-token",
-                    baseUrl: "https://api.pay2nature.com",
+                    baseUrl: "BASE_URL",
                     onContribution: function (data) {
                         console.log("Contribution made:", data);
                     },
@@ -190,7 +197,7 @@ import "@pay2nature/widget-sdk/jquery"; // Registers the plugin
 $(document).ready(function () {
     $("#pay2nature-widget").pay2nature({
         widgetToken: "your-widget-token",
-        baseUrl: "https://api.pay2nature.com",
+        baseUrl: "BASE_URL",
     });
 });
 ```
@@ -267,7 +274,7 @@ interface Pay2NatureWidgetProps {
 ```javascript
 $("#widget-container").pay2nature({
     widgetToken: "your-token",
-    baseUrl: "https://api.pay2nature.com",
+    baseUrl: "BASE_URL",
 });
 ```
 
@@ -303,7 +310,7 @@ For Next.js and other frameworks, you can use environment variables:
 
 ```env
 NEXT_PUBLIC_WIDGET_TOKEN=your-widget-token
-NEXT_PUBLIC_API_URL=https://api.pay2nature.com
+NEXT_PUBLIC_API_URL=BASE_URL
 ```
 
 ## Error Handling

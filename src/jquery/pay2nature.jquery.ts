@@ -25,7 +25,7 @@ declare global {
     optionsOrMethod: Pay2NatureWidgetOptions | string,
     ...args: any[]
   ): JQuery {
-    return this.each(function () {
+    return this.each(function (this: HTMLElement) {
       const $element = $(this);
       let data = $element.data(DATA_KEY) as Pay2NaturePluginData | undefined;
 
@@ -52,7 +52,7 @@ declare global {
       // Create new instance
       const instance = new Pay2NatureWidget({
         ...options,
-        container: this as HTMLElement,
+        container: this,
       });
 
       // Store instance
