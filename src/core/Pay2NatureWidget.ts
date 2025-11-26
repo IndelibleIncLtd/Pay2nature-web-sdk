@@ -4,203 +4,222 @@
  */
 
 export interface Pay2NatureWidgetOptions {
-  widgetToken: string;
-  baseUrl: string;
-  container?: HTMLElement | string | null;
-  onContribution?: (data: ContributionData) => void;
-  onToggle?: (isEnabled: boolean) => void;
-  onError?: (error: Error) => void;
+    widgetToken: string;
+    baseUrl: string;
+    container?: HTMLElement | string | null;
+    onContribution?: (data: ContributionData) => void;
+    onToggle?: (isEnabled: boolean) => void;
+    onError?: (error: Error) => void;
 }
 
 export interface ContributionData {
-  amount: number;
-  currency: string;
-  paymentUrl?: string;
-  projectName?: string;
-  paymentToken?: string;
+    amount: number;
+    currency: string;
+    paymentUrl?: string;
+    projectName?: string;
+    paymentToken?: string;
 }
 
 export interface WidgetConfig {
-  currency: string;
-  currencySymbol: string;
-  minAmount: number;
-  maxAmount: number;
-  defaultAmount: number;
-  activeProjectName: string | null;
-  hasActiveProjects: boolean;
+    currency: string;
+    currencySymbol: string;
+    minAmount: number;
+    maxAmount: number;
+    defaultAmount: number;
+    activeProjectName: string | null;
+    hasActiveProjects: boolean;
 }
 
 export class Pay2NatureWidget {
-  private baseUrl: string;
-  private widgetToken: string;
-  private container: HTMLElement | null;
-  private shadowRoot: ShadowRoot | null = null;
-  private isEnabled: boolean = true;
-  private selectedAmount: number = 0;
-  private customAmount: string = '';
-  private isCustom: boolean = false;
-  private isLoading: boolean = true;
-  private config: WidgetConfig | null = null;
-  private isProcessing: boolean = false;
-  private mobileMoneyNumber: string = '';
-  private mobileMoneyName: string = '';
-  private mobileMoneyProvider: string = '';
-  private mobileMoneyAnonymous: boolean = false;
-  private showMobileMoneyPrompt: boolean = false;
-  private mobileMoneyModal: any = null;
+    private baseUrl: string;
+    private widgetToken: string;
+    private container: HTMLElement | null;
+    private shadowRoot: ShadowRoot | null = null;
+    private isEnabled: boolean = true;
+    private selectedAmount: number = 0;
+    private customAmount: string = "";
+    private isCustom: boolean = false;
+    private isLoading: boolean = true;
+    private config: WidgetConfig | null = null;
+    private isProcessing: boolean = false;
+    private mobileMoneyNumber: string = "";
+    private mobileMoneyName: string = "";
+    private mobileMoneyProvider: string = "";
+    private mobileMoneyAnonymous: boolean = false;
+    private showMobileMoneyPrompt: boolean = false;
+    private mobileMoneyModal: any = null;
 
-  // Default fallback values
-  private currency: string = 'USD';
-  private currencySymbol: string = '$';
-  private minAmount: number = 0.5;
-  private maxAmount: number = 5.0;
-  private defaultAmount: number = 1.0;
-  private predefinedAmounts: number[] = [];
-  private activeProjectName: string | null = null;
+    // Default fallback values
+    private currency: string = "USD";
+    private currencySymbol: string = "$";
+    private minAmount: number = 0.5;
+    private maxAmount: number = 5.0;
+    private defaultAmount: number = 1.0;
+    private predefinedAmounts: number[] = [];
+    private activeProjectName: string | null = null;
 
-  // Event callbacks
-  private onContribution: (data: ContributionData) => void;
-  private onToggle: (isEnabled: boolean) => void;
-  private onError: (error: Error) => void;
+    // Event callbacks
+    private onContribution: (data: ContributionData) => void;
+    private onToggle: (isEnabled: boolean) => void;
+    private onError: (error: Error) => void;
 
-  constructor(options: Pay2NatureWidgetOptions) {
-    if (!options.baseUrl || !options.widgetToken) {
-      throw new Error('Pay2Nature: widgetToken and baseUrl are required');
-    }
-
-    this.baseUrl = options.baseUrl;
-    this.widgetToken = options.widgetToken;
-    this.container = this.resolveContainer(options.container);
-    this.onContribution = options.onContribution || (() => {});
-    this.onToggle = options.onToggle || (() => {});
-    this.onError = options.onError || ((error) => console.error(error));
-
-    // Initialize widget asynchronously
-    this.init();
-    this.loadMobileMoneyModal();
-  }
-
-  private resolveContainer(
-    container: HTMLElement | string | null | undefined
-  ): HTMLElement | null {
-    if (!container) {
-      const fallback = document.getElementById('pay2nature-widget');
-      return fallback;
-    }
-
-    if (typeof container === 'string') {
-      return document.querySelector(container) as HTMLElement;
-    }
-
-    return container;
-  }
-
-  private createShadowDOM(): void {
-    if (!this.container) return;
-
-    if (this.container.shadowRoot) {
-      this.shadowRoot = this.container.shadowRoot;
-    } else {
-      this.shadowRoot = this.container.attachShadow({ mode: 'closed' });
-    }
-  }
-
-  async init(): Promise<void> {
-    if (!this.container) {
-      console.error(
-        'Pay2Nature: Container element not provided to widget constructor'
-      );
-      return;
-    }
-
-    this.createShadowDOM();
-
-    if (!this.shadowRoot) {
-      console.error('Pay2Nature: Failed to create shadow DOM');
-      return;
-    }
-
-    this.renderLoading();
-
-    try {
-      await this.fetchConfiguration();
-
-      if (!this.config?.hasActiveProjects) {
-        this.renderError(
-          'Configuration Error: No active projects found. Please ensure you have at least one active project before using the widget.'
-        );
-        return;
-      }
-
-      this.render();
-      this.attachEventListeners();
-    } catch (error) {
-      console.error('Pay2Nature Widget initialization failed:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      this.renderError(errorMessage);
-      this.onError(new Error(errorMessage));
-    }
-  }
-
-  private async fetchConfiguration(): Promise<void> {
-    const url = `${this.baseUrl}/api/widget/${this.widgetToken}/config`;
-
-    try {
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error(
-            `Widget configuration not found for token: ${this.widgetToken}`
-          );
+    constructor(options: Pay2NatureWidgetOptions) {
+        if (!options.baseUrl || !options.widgetToken) {
+            throw new Error("Pay2Nature: widgetToken and baseUrl are required");
         }
-        throw new Error(
-          `Failed to fetch widget configuration: ${response.status} ${response.statusText}`
-        );
-      }
 
-      const configData = await response.json();
-      this.config = configData as WidgetConfig;
+        this.baseUrl = options.baseUrl;
+        this.widgetToken = options.widgetToken;
+        this.container = this.resolveContainer(options.container);
+        this.onContribution = options.onContribution || (() => {});
+        this.onToggle = options.onToggle || (() => {});
+        this.onError = options.onError || ((error) => console.error(error));
 
-      if (!this.config) {
-        throw new Error(
-          `No configuration found for widget token: ${this.widgetToken}`
-        );
-      }
-
-      // Update widget properties from fetched config
-      this.currency = this.config.currency || 'USD';
-      this.currencySymbol = this.config.currencySymbol || '$';
-      this.minAmount = parseFloat(String(this.config.minAmount || '0.50'));
-      this.maxAmount = parseFloat(String(this.config.maxAmount || '5.00'));
-      this.defaultAmount = parseFloat(
-        String(this.config.defaultAmount || '1.00')
-      );
-      this.activeProjectName = this.config.activeProjectName || null;
-
-      this.selectedAmount = this.defaultAmount;
-
-      // Generate predefined amounts
-      const step = (this.maxAmount - this.minAmount) / 4;
-      this.predefinedAmounts = [
-        this.minAmount,
-        this.minAmount + step,
-        this.minAmount + step * 2,
-        this.minAmount + step * 3,
-        this.maxAmount,
-      ].map((amount) => Math.round(amount * 100) / 100);
-
-      this.isLoading = false;
-    } catch (error) {
-      this.isLoading = false;
-      console.error('Failed to fetch widget configuration:', error);
-      throw error;
+        // Initialize widget asynchronously
+        this.init();
+        this.loadMobileMoneyModal();
     }
-  }
 
-  private getStyles(): string {
-    return `
+    private resolveContainer(
+        container: HTMLElement | string | null | undefined
+    ): HTMLElement | null {
+        if (!container) {
+            const fallback = document.getElementById("pay2nature-widget");
+            return fallback;
+        }
+
+        if (typeof container === "string") {
+            return document.querySelector(container) as HTMLElement;
+        }
+
+        return container;
+    }
+
+    private createShadowDOM(): void {
+        if (!this.container) return;
+
+        // Check if shadow root already exists
+        if (this.container.shadowRoot) {
+            // Reuse existing shadow root and clear it
+            this.shadowRoot = this.container.shadowRoot;
+            this.shadowRoot.innerHTML = "";
+        } else {
+            // Create new shadow root
+            try {
+                this.shadowRoot = this.container.attachShadow({
+                    mode: "closed",
+                });
+            } catch (error) {
+                console.error(
+                    "Pay2Nature: Failed to create shadow DOM:",
+                    error
+                );
+                // Fallback: if shadow DOM creation fails, we'll use the container directly
+                // This shouldn't happen, but provides a safety net
+            }
+        }
+    }
+
+    async init(): Promise<void> {
+        if (!this.container) {
+            console.error(
+                "Pay2Nature: Container element not provided to widget constructor"
+            );
+            return;
+        }
+
+        this.createShadowDOM();
+
+        if (!this.shadowRoot) {
+            console.error("Pay2Nature: Failed to create shadow DOM");
+            return;
+        }
+
+        this.renderLoading();
+
+        try {
+            await this.fetchConfiguration();
+
+            if (!this.config?.hasActiveProjects) {
+                this.renderError(
+                    "Configuration Error: No active projects found. Please ensure you have at least one active project before using the widget."
+                );
+                return;
+            }
+
+            this.render();
+            this.attachEventListeners();
+        } catch (error) {
+            console.error("Pay2Nature Widget initialization failed:", error);
+            const errorMessage =
+                error instanceof Error ? error.message : "Unknown error";
+            this.renderError(errorMessage);
+            this.onError(new Error(errorMessage));
+        }
+    }
+
+    private async fetchConfiguration(): Promise<void> {
+        const url = `${this.baseUrl}/api/widget/${this.widgetToken}/config`;
+
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error(
+                        `Widget configuration not found for token: ${this.widgetToken}`
+                    );
+                }
+                throw new Error(
+                    `Failed to fetch widget configuration: ${response.status} ${response.statusText}`
+                );
+            }
+
+            const configData = await response.json();
+            this.config = configData as WidgetConfig;
+
+            if (!this.config) {
+                throw new Error(
+                    `No configuration found for widget token: ${this.widgetToken}`
+                );
+            }
+
+            // Update widget properties from fetched config
+            this.currency = this.config.currency || "USD";
+            this.currencySymbol = this.config.currencySymbol || "$";
+            this.minAmount = parseFloat(
+                String(this.config.minAmount || "0.50")
+            );
+            this.maxAmount = parseFloat(
+                String(this.config.maxAmount || "5.00")
+            );
+            this.defaultAmount = parseFloat(
+                String(this.config.defaultAmount || "1.00")
+            );
+            this.activeProjectName = this.config.activeProjectName || null;
+
+            this.selectedAmount = this.defaultAmount;
+
+            // Generate predefined amounts
+            const step = (this.maxAmount - this.minAmount) / 4;
+            this.predefinedAmounts = [
+                this.minAmount,
+                this.minAmount + step,
+                this.minAmount + step * 2,
+                this.minAmount + step * 3,
+                this.maxAmount,
+            ].map((amount) => Math.round(amount * 100) / 100);
+
+            this.isLoading = false;
+        } catch (error) {
+            this.isLoading = false;
+            console.error("Failed to fetch widget configuration:", error);
+            throw error;
+        }
+    }
+
+    private getStyles(): string {
+        return `
       <style>
         :host {
           display: block;
@@ -321,12 +340,12 @@ export class Pay2NatureWidget {
         }
       </style>
     `;
-  }
+    }
 
-  private renderLoading(): void {
-    if (!this.shadowRoot) return;
+    private renderLoading(): void {
+        if (!this.shadowRoot) return;
 
-    this.shadowRoot.innerHTML = `
+        this.shadowRoot.innerHTML = `
       ${this.getStyles()}
       <div class="pay2nature-widget">
         <div class="p2n-header">
@@ -339,12 +358,12 @@ export class Pay2NatureWidget {
         </div>
       </div>
     `;
-  }
+    }
 
-  private renderError(message: string): void {
-    if (!this.shadowRoot) return;
+    private renderError(message: string): void {
+        if (!this.shadowRoot) return;
 
-    this.shadowRoot.innerHTML = `
+        this.shadowRoot.innerHTML = `
       ${this.getStyles()}
       <div class="pay2nature-widget" style="border-color: #fca5a5; background-color: #fef2f2;">
         <div class="p2n-header">
@@ -357,16 +376,16 @@ export class Pay2NatureWidget {
         </div>
       </div>
     `;
-  }
+    }
 
-  private render(): void {
-    if (!this.shadowRoot) return;
+    private render(): void {
+        if (!this.shadowRoot) return;
 
-    const currentAmount = this.isCustom
-      ? parseFloat(this.customAmount) || 0
-      : this.selectedAmount;
+        const currentAmount = this.isCustom
+            ? parseFloat(this.customAmount) || 0
+            : this.selectedAmount;
 
-    this.shadowRoot.innerHTML = `
+        this.shadowRoot.innerHTML = `
       ${this.getStyles()}
       <div class="pay2nature-widget">
         <div class="p2n-header">
@@ -377,19 +396,19 @@ export class Pay2NatureWidget {
           </div>
         </div>
         <p class="p2n-description">
-          Add a small contribution to verified nature projects. Your contribution goes directly to conservation efforts${this.activeProjectName ? ` in project <strong>${this.activeProjectName}</strong>` : ''}.
+          Add a small contribution to verified nature projects. Your contribution goes directly to conservation efforts${this.activeProjectName ? ` in project <strong>${this.activeProjectName}</strong>` : ""}.
         </p>
         <div class="p2n-content">
           <div class="p2n-amounts">
             ${this.predefinedAmounts
-              .map(
-                (amount) => `
-              <button class="p2n-amount ${this.selectedAmount === amount && !this.isCustom ? 'selected' : ''}" data-amount="${amount}">
+                .map(
+                    (amount) => `
+              <button class="p2n-amount ${this.selectedAmount === amount && !this.isCustom ? "selected" : ""}" data-amount="${amount}">
                 ${this.formatCurrency(amount)}
               </button>
             `
-              )
-              .join('')}
+                )
+                .join("")}
             <div class="p2n-custom-wrapper">
               <span class="p2n-custom-label">Custom:</span>
               <input type="number" class="p2n-custom" placeholder="0.00"
@@ -397,377 +416,405 @@ export class Pay2NatureWidget {
                      value="${this.customAmount}">
             </div>
           </div>
-          <button class="p2n-contribute" ${!this.isEnabled || currentAmount < this.minAmount ? 'disabled' : ''}>
+          <button class="p2n-contribute" ${!this.isEnabled || currentAmount < this.minAmount ? "disabled" : ""}>
             Contribute ${this.currencySymbol}${currentAmount.toFixed(2)}
           </button>
         </div>
       </div>
     `;
 
-    this.attachEventListeners();
-  }
-
-  private attachEventListeners(): void {
-    if (!this.shadowRoot) return;
-
-    const amountButtons = this.shadowRoot.querySelectorAll('.p2n-amount');
-    const customInput = this.shadowRoot.querySelector('.p2n-custom') as HTMLInputElement;
-    const contributeButton = this.shadowRoot.querySelector('.p2n-contribute') as HTMLButtonElement;
-
-    if (!customInput || !contributeButton) return;
-
-    // Amount selection
-    amountButtons.forEach((button) => {
-      button.addEventListener('click', (e) => {
-        const amount = parseFloat((e.target as HTMLElement).dataset.amount || '0');
-        this.selectAmount(amount, false);
-        this.customAmount = '';
-        if (customInput) customInput.value = '';
-        this.updateDisplayedAmount();
-        this.updatePresetButtonStates();
-      });
-    });
-
-    // Custom amount input
-    customInput.addEventListener('input', (e) => {
-      const value = (e.target as HTMLInputElement).value;
-      this.customAmount = value;
-      const numValue = parseFloat(value);
-
-      if (!isNaN(numValue) && numValue >= this.minAmount) {
-        this.selectAmount(numValue, true);
-      } else {
-        this.isCustom = value !== '';
-      }
-
-      this.updateDisplayedAmount();
-      this.updatePresetButtonStates();
-    });
-
-    // Contribute button
-    contributeButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (!this.isProcessing) {
-        this.handleContribution();
-      }
-    });
-  }
-
-  private selectAmount(amount: number, isCustom: boolean): void {
-    this.selectedAmount = amount;
-    this.isCustom = isCustom;
-  }
-
-  private formatCurrency(amount: number): string {
-    return `${this.currencySymbol}${amount.toFixed(2)}`;
-  }
-
-  private updateDisplayedAmount(): void {
-    if (!this.shadowRoot) return;
-
-    const currentAmount = this.isCustom
-      ? parseFloat(this.customAmount) || 0
-      : this.selectedAmount;
-
-    const contributeButton = this.shadowRoot.querySelector('.p2n-contribute') as HTMLButtonElement;
-    if (contributeButton) {
-      const isValidAmount = currentAmount >= this.minAmount;
-      contributeButton.disabled = !this.isEnabled || !isValidAmount;
-
-      if (isValidAmount) {
-        contributeButton.innerHTML = `Contribute ${this.formatCurrency(currentAmount)}`;
-      } else {
-        contributeButton.innerHTML = `Minimum ${this.formatCurrency(this.minAmount)}`;
-      }
-    }
-  }
-
-  private updatePresetButtonStates(): void {
-    if (!this.shadowRoot) return;
-
-    const amountButtons = this.shadowRoot.querySelectorAll('.p2n-amount');
-    amountButtons.forEach((button) => {
-      const amount = parseFloat(button.getAttribute('data-amount') || '0');
-      if (amount === this.selectedAmount && !this.isCustom) {
-        button.classList.add('selected');
-      } else {
-        button.classList.remove('selected');
-      }
-    });
-  }
-
-  private async handleContribution(): Promise<void> {
-    if (this.isProcessing) return;
-
-    const amount = this.isCustom
-      ? parseFloat(this.customAmount)
-      : this.selectedAmount;
-
-    if (amount < this.minAmount) {
-      this.onError(
-        new Error(
-          `Amount must be at least ${this.formatCurrency(this.minAmount)}`
-        )
-      );
-      return;
+        this.attachEventListeners();
     }
 
-    if (this.config?.currency === 'GHS') {
-      // Mobile money flow
-      if (this.mobileMoneyModal) {
-        this.mobileMoneyModal.show({
-          showAnonymous: true,
-          anonymousChecked: this.mobileMoneyAnonymous,
-          nameValue: this.mobileMoneyName,
-          numberValue: this.mobileMoneyNumber,
-          providerValue: this.mobileMoneyProvider,
+    private attachEventListeners(): void {
+        if (!this.shadowRoot) return;
+
+        const amountButtons = this.shadowRoot.querySelectorAll(".p2n-amount");
+        const customInput = this.shadowRoot.querySelector(
+            ".p2n-custom"
+        ) as HTMLInputElement;
+        const contributeButton = this.shadowRoot.querySelector(
+            ".p2n-contribute"
+        ) as HTMLButtonElement;
+
+        if (!customInput || !contributeButton) return;
+
+        // Amount selection
+        amountButtons.forEach((button) => {
+            button.addEventListener("click", (e) => {
+                const amount = parseFloat(
+                    (e.target as HTMLElement).dataset.amount || "0"
+                );
+                this.selectAmount(amount, false);
+                this.customAmount = "";
+                if (customInput) customInput.value = "";
+                this.updateDisplayedAmount();
+                this.updatePresetButtonStates();
+            });
         });
-        this.setupMobileMoneyModalCallbacks();
-      } else {
-        console.error('Mobile money modal not loaded yet');
-      }
-      return;
-    } else {
-      // Stripe flow
-      await this.stripeCreatePaymentLink(amount);
-    }
-  }
 
-  private async stripeCreatePaymentLink(amount: number): Promise<void> {
-    try {
-      this.isProcessing = true;
+        // Custom amount input
+        customInput.addEventListener("input", (e) => {
+            const value = (e.target as HTMLInputElement).value;
+            this.customAmount = value;
+            const numValue = parseFloat(value);
 
-      if (!this.shadowRoot) return;
+            if (!isNaN(numValue) && numValue >= this.minAmount) {
+                this.selectAmount(numValue, true);
+            } else {
+                this.isCustom = value !== "";
+            }
 
-      const contributeButton = this.shadowRoot.querySelector('.p2n-contribute') as HTMLButtonElement;
-      const originalHTML = contributeButton?.innerHTML || '';
-      if (contributeButton) {
-        contributeButton.disabled = true;
-        contributeButton.innerHTML = 'Processing...';
-      }
-
-      const response = await fetch(
-        `${this.baseUrl}/api/widget/${this.widgetToken}/stripe/create-payment-link`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ amount }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || `HTTP ${response.status}: ${response.statusText}`
-        );
-      }
-
-      const result = await response.json();
-
-      window.open(result.paymentUrl, '_blank');
-
-      this.onContribution({
-        amount,
-        currency: this.currency,
-        paymentUrl: result.paymentUrl,
-        projectName: result.projectName,
-      });
-
-      if (contributeButton) {
-        const successMessage = result.projectName
-          ? `✓ Opening payment for ${result.projectName}...`
-          : `✓ Opening payment...`;
-        contributeButton.innerHTML = successMessage;
-        contributeButton.style.backgroundColor = '#10b981';
-
-        setTimeout(() => {
-          this.isProcessing = false;
-          if (contributeButton) {
-            contributeButton.disabled = false;
-            contributeButton.innerHTML = originalHTML;
-            contributeButton.style.backgroundColor = '';
-          }
-        }, 3000);
-      }
-    } catch (error) {
-      console.error('Pay2Nature contribution error:', error);
-      this.onError(error instanceof Error ? error : new Error(String(error)));
-
-      this.isProcessing = false;
-
-      if (this.shadowRoot) {
-        const contributeButton = this.shadowRoot.querySelector('.p2n-contribute') as HTMLButtonElement;
-        if (contributeButton) {
-          contributeButton.disabled = false;
-          contributeButton.innerHTML = 'Payment Error - Try Again';
-          contributeButton.style.backgroundColor = '#ef4444';
-
-          setTimeout(() => {
-            contributeButton.style.backgroundColor = '';
             this.updateDisplayedAmount();
-          }, 4000);
+            this.updatePresetButtonStates();
+        });
+
+        // Contribute button
+        contributeButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (!this.isProcessing) {
+                this.handleContribution();
+            }
+        });
+    }
+
+    private selectAmount(amount: number, isCustom: boolean): void {
+        this.selectedAmount = amount;
+        this.isCustom = isCustom;
+    }
+
+    private formatCurrency(amount: number): string {
+        return `${this.currencySymbol}${amount.toFixed(2)}`;
+    }
+
+    private updateDisplayedAmount(): void {
+        if (!this.shadowRoot) return;
+
+        const currentAmount = this.isCustom
+            ? parseFloat(this.customAmount) || 0
+            : this.selectedAmount;
+
+        const contributeButton = this.shadowRoot.querySelector(
+            ".p2n-contribute"
+        ) as HTMLButtonElement;
+        if (contributeButton) {
+            const isValidAmount = currentAmount >= this.minAmount;
+            contributeButton.disabled = !this.isEnabled || !isValidAmount;
+
+            if (isValidAmount) {
+                contributeButton.innerHTML = `Contribute ${this.formatCurrency(currentAmount)}`;
+            } else {
+                contributeButton.innerHTML = `Minimum ${this.formatCurrency(this.minAmount)}`;
+            }
         }
-      }
-    }
-  }
-
-  private loadMobileMoneyModal(): void {
-    if ((window as any).MobileMoneyModal) {
-      this.mobileMoneyModal = new (window as any).MobileMoneyModal();
-      return;
     }
 
-    const script = document.createElement('script');
-    script.src = `${this.baseUrl}/widget/mobile-money-modal.js`;
-    script.onload = () => {
-      this.mobileMoneyModal = new (window as any).MobileMoneyModal();
-    };
-    script.onerror = () => {
-      console.error('Failed to load mobile money modal script');
-    };
-    document.head.appendChild(script);
-  }
+    private updatePresetButtonStates(): void {
+        if (!this.shadowRoot) return;
 
-  private setupMobileMoneyModalCallbacks(): void {
-    if (!this.mobileMoneyModal) return;
+        const amountButtons = this.shadowRoot.querySelectorAll(".p2n-amount");
+        amountButtons.forEach((button) => {
+            const amount = parseFloat(
+                button.getAttribute("data-amount") || "0"
+            );
+            if (amount === this.selectedAmount && !this.isCustom) {
+                button.classList.add("selected");
+            } else {
+                button.classList.remove("selected");
+            }
+        });
+    }
 
-    this.mobileMoneyModal.setCallbacks({
-      onNameChange: (name: string) => {
-        this.mobileMoneyName = name;
-      },
-      onNumberChange: (number: string) => {
-        this.mobileMoneyNumber = number;
-      },
-      onProviderChange: (provider: string) => {
-        this.mobileMoneyProvider = provider;
-      },
-      onProceed: async (data: any) => {
-        this.mobileMoneyName = data.name;
-        this.mobileMoneyNumber = data.number;
-        this.mobileMoneyProvider = data.provider;
-        this.mobileMoneyAnonymous = data.isAnonymous;
+    private async handleContribution(): Promise<void> {
+        if (this.isProcessing) return;
 
         const amount = this.isCustom
-          ? parseFloat(this.customAmount)
-          : this.selectedAmount;
+            ? parseFloat(this.customAmount)
+            : this.selectedAmount;
 
-        this.mobileMoneyModal.hide();
-
-        await this.initiateMobileMoneyPayment(
-          amount,
-          data.number,
-          data.provider,
-          data.name
-        );
-      },
-      onHide: () => {
-        this.showMobileMoneyPrompt = false;
-        this.mobileMoneyNumber = '';
-        this.mobileMoneyName = '';
-        this.mobileMoneyProvider = '';
-        this.mobileMoneyAnonymous = false;
-      },
-    });
-  }
-
-  private async initiateMobileMoneyPayment(
-    amount: number,
-    mobileNumber: string,
-    mobileProvider: string,
-    customerName: string | null
-  ): Promise<void> {
-    try {
-      this.isProcessing = true;
-
-      if (this.shadowRoot) {
-        const contributeButton = this.shadowRoot.querySelector('.p2n-contribute') as HTMLButtonElement;
-        const originalHTML = contributeButton?.innerHTML || '';
-        if (contributeButton) {
-          contributeButton.disabled = true;
-          contributeButton.innerHTML = 'Processing...';
+        if (amount < this.minAmount) {
+            this.onError(
+                new Error(
+                    `Amount must be at least ${this.formatCurrency(this.minAmount)}`
+                )
+            );
+            return;
         }
-      }
 
-      const requestBody = {
-        amount: parseFloat(String(amount)),
-        mobileNumber,
-        mobileProvider,
-        customerName,
-      };
-
-      const response = await fetch(
-        `${this.baseUrl}/api/widget/${this.widgetToken}/mobileMoney/initiate-payment`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody),
+        if (this.config?.currency === "GHS") {
+            // Mobile money flow
+            if (this.mobileMoneyModal) {
+                this.mobileMoneyModal.show({
+                    showAnonymous: true,
+                    anonymousChecked: this.mobileMoneyAnonymous,
+                    nameValue: this.mobileMoneyName,
+                    numberValue: this.mobileMoneyNumber,
+                    providerValue: this.mobileMoneyProvider,
+                });
+                this.setupMobileMoneyModalCallbacks();
+            } else {
+                console.error("Mobile money modal not loaded yet");
+            }
+            return;
+        } else {
+            // Stripe flow
+            await this.stripeCreatePaymentLink(amount);
         }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || `HTTP ${response.status}: ${response.statusText}`
-        );
-      }
-
-      const result = await response.json();
-
-      this.onContribution({
-        amount,
-        currency: this.currency,
-        paymentToken: result.paymentToken,
-      });
-
-      this.isProcessing = false;
-
-      if (this.shadowRoot) {
-        const contributeButton = this.shadowRoot.querySelector('.p2n-contribute') as HTMLButtonElement;
-        if (contributeButton) {
-          contributeButton.disabled = false;
-          contributeButton.innerHTML = 'Processing...';
-          contributeButton.style.backgroundColor = '';
-        }
-      }
-    } catch (error) {
-      console.error('Pay2Nature contribution error:', error);
-      this.onError(error instanceof Error ? error : new Error(String(error)));
-
-      this.isProcessing = false;
-
-      if (this.shadowRoot) {
-        const contributeButton = this.shadowRoot.querySelector('.p2n-contribute') as HTMLButtonElement;
-        if (contributeButton) {
-          contributeButton.disabled = false;
-          contributeButton.innerHTML = 'Payment Error - Try Again';
-          contributeButton.style.backgroundColor = '#ef4444';
-
-          setTimeout(() => {
-            contributeButton.style.backgroundColor = '';
-            this.updateDisplayedAmount();
-          }, 4000);
-        }
-      }
     }
-  }
 
-  // Public API methods
-  public destroy(): void {
-    if (this.shadowRoot && this.container) {
-      this.container.removeChild(this.shadowRoot as any);
-      this.shadowRoot = null;
-    }
-  }
+    private async stripeCreatePaymentLink(amount: number): Promise<void> {
+        try {
+            this.isProcessing = true;
 
-  public updateConfig(config: Partial<WidgetConfig>): void {
-    if (this.config) {
-      this.config = { ...this.config, ...config };
-      this.render();
+            if (!this.shadowRoot) return;
+
+            const contributeButton = this.shadowRoot.querySelector(
+                ".p2n-contribute"
+            ) as HTMLButtonElement;
+            const originalHTML = contributeButton?.innerHTML || "";
+            if (contributeButton) {
+                contributeButton.disabled = true;
+                contributeButton.innerHTML = "Processing...";
+            }
+
+            const response = await fetch(
+                `${this.baseUrl}/api/widget/${this.widgetToken}/stripe/create-payment-link`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ amount }),
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(
+                    errorData.message ||
+                        `HTTP ${response.status}: ${response.statusText}`
+                );
+            }
+
+            const result = await response.json();
+
+            window.open(result.paymentUrl, "_blank");
+
+            this.onContribution({
+                amount,
+                currency: this.currency,
+                paymentUrl: result.paymentUrl,
+                projectName: result.projectName,
+            });
+
+            if (contributeButton) {
+                const successMessage = result.projectName
+                    ? `✓ Opening payment for ${result.projectName}...`
+                    : `✓ Opening payment...`;
+                contributeButton.innerHTML = successMessage;
+                contributeButton.style.backgroundColor = "#10b981";
+
+                setTimeout(() => {
+                    this.isProcessing = false;
+                    if (contributeButton) {
+                        contributeButton.disabled = false;
+                        contributeButton.innerHTML = originalHTML;
+                        contributeButton.style.backgroundColor = "";
+                    }
+                }, 3000);
+            }
+        } catch (error) {
+            console.error("Pay2Nature contribution error:", error);
+            this.onError(
+                error instanceof Error ? error : new Error(String(error))
+            );
+
+            this.isProcessing = false;
+
+            if (this.shadowRoot) {
+                const contributeButton = this.shadowRoot.querySelector(
+                    ".p2n-contribute"
+                ) as HTMLButtonElement;
+                if (contributeButton) {
+                    contributeButton.disabled = false;
+                    contributeButton.innerHTML = "Payment Error - Try Again";
+                    contributeButton.style.backgroundColor = "#ef4444";
+
+                    setTimeout(() => {
+                        contributeButton.style.backgroundColor = "";
+                        this.updateDisplayedAmount();
+                    }, 4000);
+                }
+            }
+        }
     }
-  }
+
+    private loadMobileMoneyModal(): void {
+        if ((window as any).MobileMoneyModal) {
+            this.mobileMoneyModal = new (window as any).MobileMoneyModal();
+            return;
+        }
+
+        const script = document.createElement("script");
+        script.src = `${this.baseUrl}/widget/mobile-money-modal.js`;
+        script.onload = () => {
+            this.mobileMoneyModal = new (window as any).MobileMoneyModal();
+        };
+        script.onerror = () => {
+            console.error("Failed to load mobile money modal script");
+        };
+        document.head.appendChild(script);
+    }
+
+    private setupMobileMoneyModalCallbacks(): void {
+        if (!this.mobileMoneyModal) return;
+
+        this.mobileMoneyModal.setCallbacks({
+            onNameChange: (name: string) => {
+                this.mobileMoneyName = name;
+            },
+            onNumberChange: (number: string) => {
+                this.mobileMoneyNumber = number;
+            },
+            onProviderChange: (provider: string) => {
+                this.mobileMoneyProvider = provider;
+            },
+            onProceed: async (data: any) => {
+                this.mobileMoneyName = data.name;
+                this.mobileMoneyNumber = data.number;
+                this.mobileMoneyProvider = data.provider;
+                this.mobileMoneyAnonymous = data.isAnonymous;
+
+                const amount = this.isCustom
+                    ? parseFloat(this.customAmount)
+                    : this.selectedAmount;
+
+                this.mobileMoneyModal.hide();
+
+                await this.initiateMobileMoneyPayment(
+                    amount,
+                    data.number,
+                    data.provider,
+                    data.name
+                );
+            },
+            onHide: () => {
+                this.showMobileMoneyPrompt = false;
+                this.mobileMoneyNumber = "";
+                this.mobileMoneyName = "";
+                this.mobileMoneyProvider = "";
+                this.mobileMoneyAnonymous = false;
+            },
+        });
+    }
+
+    private async initiateMobileMoneyPayment(
+        amount: number,
+        mobileNumber: string,
+        mobileProvider: string,
+        customerName: string | null
+    ): Promise<void> {
+        try {
+            this.isProcessing = true;
+
+            if (this.shadowRoot) {
+                const contributeButton = this.shadowRoot.querySelector(
+                    ".p2n-contribute"
+                ) as HTMLButtonElement;
+                const originalHTML = contributeButton?.innerHTML || "";
+                if (contributeButton) {
+                    contributeButton.disabled = true;
+                    contributeButton.innerHTML = "Processing...";
+                }
+            }
+
+            const requestBody = {
+                amount: parseFloat(String(amount)),
+                mobileNumber,
+                mobileProvider,
+                customerName,
+            };
+
+            const response = await fetch(
+                `${this.baseUrl}/api/widget/${this.widgetToken}/mobileMoney/initiate-payment`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(requestBody),
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(
+                    errorData.message ||
+                        `HTTP ${response.status}: ${response.statusText}`
+                );
+            }
+
+            const result = await response.json();
+
+            this.onContribution({
+                amount,
+                currency: this.currency,
+                paymentToken: result.paymentToken,
+            });
+
+            this.isProcessing = false;
+
+            if (this.shadowRoot) {
+                const contributeButton = this.shadowRoot.querySelector(
+                    ".p2n-contribute"
+                ) as HTMLButtonElement;
+                if (contributeButton) {
+                    contributeButton.disabled = false;
+                    contributeButton.innerHTML = "Processing...";
+                    contributeButton.style.backgroundColor = "";
+                }
+            }
+        } catch (error) {
+            console.error("Pay2Nature contribution error:", error);
+            this.onError(
+                error instanceof Error ? error : new Error(String(error))
+            );
+
+            this.isProcessing = false;
+
+            if (this.shadowRoot) {
+                const contributeButton = this.shadowRoot.querySelector(
+                    ".p2n-contribute"
+                ) as HTMLButtonElement;
+                if (contributeButton) {
+                    contributeButton.disabled = false;
+                    contributeButton.innerHTML = "Payment Error - Try Again";
+                    contributeButton.style.backgroundColor = "#ef4444";
+
+                    setTimeout(() => {
+                        contributeButton.style.backgroundColor = "";
+                        this.updateDisplayedAmount();
+                    }, 4000);
+                }
+            }
+        }
+    }
+
+    // Public API methods
+    public destroy(): void {
+        if (this.shadowRoot) {
+            // Clear the shadow root content instead of trying to remove it
+            this.shadowRoot.innerHTML = "";
+            this.shadowRoot = null;
+        }
+        // Note: We don't remove the shadow root itself as it's attached to the container
+        // and removing it would cause issues if the widget is re-initialized
+    }
+
+    public updateConfig(config: Partial<WidgetConfig>): void {
+        if (this.config) {
+            this.config = { ...this.config, ...config };
+            this.render();
+        }
+    }
 }
-

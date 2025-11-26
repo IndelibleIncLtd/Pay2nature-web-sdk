@@ -16,45 +16,45 @@ npm install @pay2nature/widget-sdk
 <div id="pay2nature-widget"></div>
 
 <script type="module">
-  import Pay2NatureWidget from '@pay2nature/widget-sdk';
-  
-  new Pay2NatureWidget({
-    widgetToken: 'your-widget-token',
-    baseUrl: 'https://api.pay2nature.com',
-    container: document.getElementById('pay2nature-widget')
-  });
+    import Pay2NatureWidget from "@pay2nature/widget-sdk";
+
+    new Pay2NatureWidget({
+        widgetToken: "your-widget-token",
+        baseUrl: "https://api.pay2nature.com",
+        container: document.getElementById("pay2nature-widget"),
+    });
 </script>
 ```
 
 ### 2. React (Most Popular)
 
 ```tsx
-import { Pay2NatureWidgetComponent } from '@pay2nature/widget-sdk';
+import { Pay2NatureWidgetComponent } from "@pay2nature/widget-sdk";
 
 function App() {
-  return (
-    <Pay2NatureWidgetComponent
-      widgetToken="your-widget-token"
-      baseUrl="https://api.pay2nature.com"
-    />
-  );
+    return (
+        <Pay2NatureWidgetComponent
+            widgetToken="your-widget-token"
+            baseUrl="https://api.pay2nature.com"
+        />
+    );
 }
 ```
 
 ### 3. Next.js
 
 ```tsx
-'use client';
+"use client";
 
-import { Pay2NatureWidgetComponent } from '@pay2nature/widget-sdk';
+import { Pay2NatureWidgetComponent } from "@pay2nature/widget-sdk";
 
 export default function Page() {
-  return (
-    <Pay2NatureWidgetComponent
-      widgetToken={process.env.NEXT_PUBLIC_WIDGET_TOKEN!}
-      baseUrl={process.env.NEXT_PUBLIC_API_URL!}
-    />
-  );
+    return (
+        <Pay2NatureWidgetComponent
+            widgetToken={process.env.NEXT_PUBLIC_WIDGET_TOKEN!}
+            baseUrl={process.env.NEXT_PUBLIC_API_URL!}
+        />
+    );
 }
 ```
 
@@ -62,17 +62,14 @@ export default function Page() {
 
 ```vue
 <template>
-  <Pay2NatureWidget
-    :widget-token="widgetToken"
-    :base-url="baseUrl"
-  />
+    <Pay2NatureWidget :widget-token="widgetToken" :base-url="baseUrl" />
 </template>
 
 <script setup>
-import Pay2NatureWidget from '@pay2nature/widget-sdk/vue/Pay2NatureWidget.vue';
+import Pay2NatureWidget from "@pay2nature/widget-sdk/vue/Pay2NatureWidget.vue";
 
-const widgetToken = 'your-widget-token';
-const baseUrl = 'https://api.pay2nature.com';
+const widgetToken = "your-widget-token";
+const baseUrl = "https://api.pay2nature.com";
 </script>
 ```
 
@@ -85,10 +82,10 @@ const baseUrl = 'https://api.pay2nature.com';
 <script src="node_modules/@pay2nature/widget-sdk/dist/index.umd.js"></script>
 
 <script>
-  $('#pay2nature-widget').pay2nature({
-    widgetToken: 'your-widget-token',
-    baseUrl: 'https://api.pay2nature.com'
-  });
+    $("#pay2nature-widget").pay2nature({
+        widgetToken: "your-widget-token",
+        baseUrl: "https://api.pay2nature.com",
+    });
 </script>
 ```
 
@@ -103,16 +100,16 @@ const baseUrl = 'https://api.pay2nature.com';
 
 ```typescript
 const widget = new Pay2NatureWidget({
-  widgetToken: 'your-token',
-  baseUrl: 'https://api.pay2nature.com',
-  container: document.getElementById('widget'),
-  onContribution: (data) => {
-    console.log('Contribution:', data);
-    // data.amount, data.currency, data.paymentUrl
-  },
-  onError: (error) => {
-    console.error('Error:', error);
-  }
+    widgetToken: "your-token",
+    baseUrl: "https://api.pay2nature.com",
+    container: document.getElementById("widget"),
+    onContribution: (data) => {
+        console.log("Contribution:", data);
+        // data.amount, data.currency, data.paymentUrl
+    },
+    onError: (error) => {
+        console.error("Error:", error);
+    },
 });
 ```
 
@@ -124,6 +121,5 @@ const widget = new Pay2NatureWidget({
 
 ## Need Help?
 
-- GitHub Issues: [Create an issue](https://github.com/your-org/pay2nature-sdk/issues)
+- GitHub Issues: [Create an issue](https://github.com/IndelibleIncLtd/pay2nature-web-sdk/issues)
 - Email: support@pay2nature.com
-
