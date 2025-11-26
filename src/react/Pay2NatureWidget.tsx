@@ -28,17 +28,30 @@ export const Pay2NatureWidgetComponent: React.FC<Pay2NatureWidgetProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetInstanceRef = useRef<Pay2NatureWidget | null>(null);
+  const callbacksRef = useRef({ onContribution, onToggle, onError });
+
+  // Update callbacks ref when they change (without causing re-initialization)
+  useEffect(() => {
+    callbacksRef.current = { onContribution, onToggle, onError };
+  }, [onContribution, onToggle, onError]);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // Destroy existing instance if it exists
+    if (widgetInstanceRef.current) {
+      widgetInstanceRef.current.destroy();
+      widgetInstanceRef.current = null;
+    }
+
+    // Create wrapper functions that use the latest callbacks from ref
     const options: Pay2NatureWidgetOptions = {
       widgetToken,
       baseUrl,
       container: containerRef.current,
-      onContribution,
-      onToggle,
-      onError,
+      onContribution: (data) => callbacksRef.current.onContribution?.(data),
+      onToggle: (isEnabled) => callbacksRef.current.onToggle?.(isEnabled),
+      onError: (error) => callbacksRef.current.onError?.(error),
     };
 
     widgetInstanceRef.current = new Pay2NatureWidget(options);
@@ -49,7 +62,7 @@ export const Pay2NatureWidgetComponent: React.FC<Pay2NatureWidgetProps> = ({
         widgetInstanceRef.current = null;
       }
     };
-  }, [widgetToken, baseUrl, onContribution, onToggle, onError]);
+  }, [widgetToken, baseUrl]); // Only re-initialize when token or baseUrl changes
 
   return (
     <div
